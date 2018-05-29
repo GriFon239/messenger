@@ -1,0 +1,138 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="row" id="app" style="min-height: 400px">
+    <div class="col-md-3" style="background: #f0f4f8">
+        <ul class="list-unstyled contact-list">
+            <li v-for="c in contacts"
+                v-bind:class="{ 'contact-list-selected': c.selected }"
+                v-on:click="selectContact(c)"
+                v-if="c.name != account.name">
+                <span>{{ c.name }}</span>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-9">
+        <div v-if="selectedContact">
+            <h2>
+                {{ selectedContact.name }}
+            </h2>
+
+            <ul class="list-unstyled message-list">
+                <li class="message-list-item" v-for="m in selectedContact.messages">
+                    <div class="message-header">
+                        <span class="message-username">{{ m.user }}</span>
+                        <span class="message-date">{{ m.date | date }}</span>
+                    </div>
+                    <div class="message-body"
+                         v-bind:class="{ 'my-message': m.user == account.name, 'not-my-message': m.user != account.name }">
+                        <span class="message-text">{{ m.text }}</span>
+                    </div>
+                </li>
+            </ul>
+
+            <input type="text" style="width: 100%"
+                   v-model="messageText"
+                   v-on:keyup.enter="sendMessage(selectedContact)" />
+            <button class="btn" style="float: right" v-on:click="sendMessage(selectedContact)">Отправить</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/1.5.1/vue-resource.js"></script>
+<script src="~/lib/signalr/signalr.min.js"></script>
+<script>
+    Vue.http.options.emulateJSON = true;
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            account: {
+                name: '@ViewData["UserName"]',
+            },
+            contacts: [],
+            selectedContact: null,
+            messageText: null,
+            connection: null
+        },
+        beforeMount() {
+            this.loadContacts();
+
+            this.connection = new signalR.HubConnectionBuilder()
+                .withUrl("/messages")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+            this.connection.start()
+                .catch(err => console.error(err.toString()));
+
+            this.connection.on('NotifyNewMessage', data => {
+                var fromUser = data.from;
+                var message = JSON.parse(data.message);
+
+                var contact = this.contacts.find(c => c.name == fromUser);
+                message.user = fromUser;
+                contact.messages.push(message);
+
+                this.$forceUpdate();
+            });
+        },
+        methods: {
+            selectContact: function (contact) {
+                if (this.selectedContact)
+                    this.selectedContact.selected = false;
+
+                contact.selected = true;
+                this.selectedContact = contact;
+
+                this.$http.get('/api/messages/' + contact.name).then(response => {
+                    contact.messages = [];
+                    response.body.forEach(m => contact.messages.push(m));
+
+                    this.$forceUpdate();
+                });
+            },
+            sendMessage: function (contact) {
+                if (!this.messageText)
+                    return;
+
+                var newMessage = {
+                    date: new Date().getTime(),
+                    text: this.messageText,
+                    user: this.selectedContact.name
+                };
+
+                this.$http.post('/api/messages', JSON.stringify(newMessage));
+                this.connection.invoke('SendMessage', JSON.stringify(newMessage), this.selectedContact.name);
+
+                newMessage.user = this.account.name;
+
+                contact.messages.push(newMessage);
+                this.messageText = null;
+            },
+            loadContacts: function () {
+                this.$http.get('/api/contacts').then(response => {
+                    response.body.forEach(c => this.contacts.push(c));
+                });
+            }
+        },
+        filters: {
+            date: function (value) {
+                var date = new Date(value);
+                var today = new Date();
+
+                var day = date.getUTCDate();
+                var month = date.getUTCMonth() + 1;
+                var year = date.getUTCFullYear();
+
+                if (day == today.getUTCDate() && month == today.getUTCMonth() + 1 && year == today.getUTCFullYear()) {
+                    return `${date.getHours()}:${date.getMinutes()}`;
+                }
+                else {
+                    return `${day}.${month}.${year} ${date.getHours()}:${date.getMinutes()}`;
+                }
+            }
+        }
+    });
+</script>

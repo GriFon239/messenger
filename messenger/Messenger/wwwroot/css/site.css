@@ -1,0 +1,103 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Wrapping element */
+/* Set some basic padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Carousel */
+.carousel-caption p {
+    font-size: 20px;
+    line-height: 1.4;
+}
+
+/* Make .svg files in the carousel display properly in older browsers */
+.carousel-inner .item img[src$=".svg"] {
+    width: 100%;
+}
+
+/* QR code generator */
+#qrCode {
+    margin: 15px;
+}
+
+/* Hide/rearrange for smaller screens */
+@media screen and (max-width: 767px) {
+    /* Hide captions */
+    .carousel-caption {
+        display: none;
+    }
+}
+
+.contact-list {
+}
+
+    .contact-list > li {
+        height: 50px;
+        line-height: 50px;
+        cursor: pointer;
+    }
+
+        .contact-list > li > span {
+            margin-left: 10px;
+        }
+
+.contact-list-selected {
+    background: #c7edfc;
+}
+
+.message {
+    background: #e1f0ff;
+    height: 40px;
+    line-height: 40px;
+}
+
+.my-message {
+    background: #c7edfc;
+    height: 40px;
+    line-height: 40px;
+}
+
+.message-list {
+}
+
+.message-list-item {
+    margin-bottom: 5px;
+}
+
+.message-username {
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.message-header {
+    margin-bottom: 2px
+}
+
+.message-body {
+    border-radius: 10px;
+    height: 40px;
+    line-height: 40px;
+}
+
+.message-date {
+    float: right;
+    margin-right: 10px
+}
+
+.message-text {
+    margin-left: 10px;
+}
+
+.my-message {
+    background: #e1f0ff;
+}
+
+.not-my-message {
+    background: #f0f4f8;
+}

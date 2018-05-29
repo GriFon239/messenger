@@ -1,0 +1,18 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Messenger.Models
+@using Messenger.Entities
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+@if (User.Identity.IsAuthenticated)
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li>
+            <a href="/">@UserManager.GetUserName(User)</a>
+        </li>
+        <li>
+            <a href="/Account/Logout">Выход</a>
+        </li>
+    </ul>
+}
